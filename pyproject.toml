@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "ygg-rss-proxy"
+version = "0.1.0"
+description = ""
+authors = ["LimeDrive <limecat@limedrive.eu>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flask = "^3.0.3"
+requests = "^2.32.3"
+lxml = "^5.2.2"
+gunicorn = "^22.0.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
