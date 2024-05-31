@@ -30,7 +30,7 @@
    docker run -d -p 5000:5000 \
        -e YGG_USER=your_username \
        -e YGG_PASS=your_password \
-       ghcr.io/LimeDrive/ygg-rss-proxy:latest
+       ghcr.io/limedrive/ygg-rss-proxy:latest
    ```
 
 ### Exécution avec Docker Compose
@@ -42,7 +42,7 @@
 
    services:
      ygg-rss-proxy:
-       image: ghcr.io/LimeDrive/ygg-rss-proxy:latest
+       image: ghcr.io/limedrive/ygg-rss-proxy:latest
        ports:
          - "5000:5000"
        environment:
