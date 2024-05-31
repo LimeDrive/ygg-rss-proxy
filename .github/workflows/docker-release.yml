@@ -33,4 +33,6 @@ jobs:
           context: .
           push: true
           platforms: linux/amd64,linux/arm64
-          tags: ghcr.io/limedrive/ygg-rss-proxy:latest
+          tags: |
+            ghcr.io/limedrive/ygg-rss-proxy:latest
+            ghcr.io/limedrive/ygg-rss-proxy:${{ github.event.release.tag_name }}

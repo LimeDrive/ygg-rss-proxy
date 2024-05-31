@@ -19,6 +19,8 @@
 
 - `YGG_USER` : Votre nom d'utilisateur pour l'authentification.
 - `YGG_PASS` : Votre mot de passe pour l'authentification.
+- `LOCAL_RSS_HOST`: Default : `localhost` peut être changé si vous souhaitez utiliser le noms de container.
+- `LOCAL_RSS_PORT`: Default : `5000` peut être changé si vous souhaitez utiliser un autre port (qui est bind sur votre machine).
 
 ## Comment Utiliser
 

@@ -7,7 +7,11 @@ COPY pyproject.toml poetry.lock ./
 
 RUN poetry config virtualenvs.create false \
     && poetry install --no-dev --no-interaction --no-ansi
+
 COPY . .
+
+ENV LOCAL_RSS_HOST=localhost
+ENV LOCAL_RSS_PORT=5000
 
 EXPOSE 5000
 

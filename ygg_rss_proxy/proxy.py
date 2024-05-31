@@ -5,12 +5,15 @@ from lxml import etree
 
 app = Flask(__name__)
 
-AUTH_URL = 'https://www.ygg.re/auth/process_login'
-RSS_URL = 'https://www.ygg.re/rss'
-TORRENT_URL = 'https://www.ygg.re/rss/download'
 
 USERNAME = os.getenv('YGG_USER')
 PASSWORD = os.getenv('YGG_PASS')
+LOCAL_RSS_HOST= os.getenv('LOCAL_RSS_HOST')
+LOCAL_RSS_PORT= os.getenv('LOCAL_RSS_PORT')
+
+AUTH_URL = 'https://www.ygg.re/auth/process_login'
+RSS_URL = 'https://www.ygg.re/rss'
+TORRENT_URL = 'https://www.ygg.re/rss/download'
 
 session = requests.Session()
 
@@ -38,7 +41,7 @@ def replace_torrent_links(rss_content):
         original_url = enclosure.get('url')
         if original_url.startswith(TORRENT_URL):
             params = original_url.split('?')[1]
-            new_url = f"http://localhost:5000/torrent?{params}"
+            new_url = f"http://{LOCAL_RSS_HOST}:{LOCAL_RSS_HOST}/torrent?{params}"
             enclosure.set('url', new_url)
 
     return etree.tostring(tree, encoding='utf-8', xml_declaration=True)
@@ -69,7 +72,7 @@ def proxy_rss():
 
 @app.route('/torrent', methods=['GET'])
 def proxy_torrent():
-    torrent_url = request.url.replace('http://localhost:5000/torrent', TORRENT_URL)
+    torrent_url = request.url.replace(f"http://{LOCAL_RSS_HOST}:{LOCAL_RSS_HOST}/torrent", TORRENT_URL)
 
     if not session.cookies:
         cookies = authenticate()
