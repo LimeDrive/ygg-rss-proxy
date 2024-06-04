@@ -1,3 +1,4 @@
+import logging
 from flask import Flask, request, jsonify, Response, redirect
 import requests
 import os
@@ -5,27 +6,88 @@ from lxml import etree
 
 app = Flask(__name__)
 
+USERNAME = os.getenv('YGG_USER', 'BaD')
+PASSWORD = os.getenv('YGG_PASS', 'BoY')
+RSS_HOST = os.getenv('RSS_HOST', 'localhost')
+RSS_PORT = os.getenv('RSS_PORT', '5000')
+RSS_SHEMA = os.getenv('RSS_SHEMA', 'http')
+FLARESOLVERR_SHEMA = os.getenv('FLARESOLVERR_SHEMA', 'http')
+FLARESOLVERR_HOST = os.getenv('FLARESOLVERR_HOST', 'localhost')
+FLARESOLVERR_PORT = os.getenv('FLARESOLVERR_PORT', '8191')
+YGG_URL = os.getenv('YGG_URL', 'https://www.ygg.re')
+INTERNAL_PORT = os.getenv('INTERNAL_PORT', 5000 )
+LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
 
-USERNAME = os.getenv('YGG_USER')
-PASSWORD = os.getenv('YGG_PASS')
-LOCAL_RSS_HOST= os.getenv('LOCAL_RSS_HOST')
-LOCAL_RSS_PORT= os.getenv('LOCAL_RSS_PORT')
+FLARESOLVERR = f'{FLARESOLVERR_SHEMA}://{FLARESOLVERR_HOST}:{FLARESOLVERR_PORT}/v1'
+AUTH_URL = f'{YGG_URL}/auth/process_login'
+RSS_URL = f'{YGG_URL}/rss'
+TORRENT_URL = f'{YGG_URL}/rss/download'
 
-AUTH_URL = 'https://www.ygg.re/auth/process_login'
-RSS_URL = 'https://www.ygg.re/rss'
-TORRENT_URL = 'https://www.ygg.re/rss/download'
+logging.basicConfig(level=getattr(logging, LOG_LEVEL.upper()))
 
 session = requests.Session()
 
-def authenticate():
-    auth_data = {
+def flaresolverr_request():
+    url = FLARESOLVERR
+
+    if requests.get(url).status_code != 405:
+        logging.error('Flaresolverr is not available')
+
+    data = {
+        'cmd': 'request.get',
+        'maxTimeout': 60000,
+        'url': RSS_URL,
+        'returnOnlyCookies': True
+    }
+
+    headers = {
+        'Content-Type': 'application/json'
+    }
+
+    response = requests.post(url, json=data, headers=headers)
+
+    if response.status_code == 200:
+        logging.info('The request with flaresolverr was successful')
+        logging.debug(response.json())
+        return response.json()
+    else:
+        logging.error(f'The request with flaresolverr failed with status code: {response.status_code}')
+
+def auth_ygg(cloudflare):
+    data = {
         'id': USERNAME,
         'pass': PASSWORD
     }
-    response = session.post(AUTH_URL, data=auth_data)
+
+    if cloudflare:
+        flaresolverr_response = flaresolverr_request()
+        if flaresolverr_response is None:
+            return None
+        cookies = flaresolverr_response['solution']['cookies']
+        user_agent = flaresolverr_response['solution']['userAgent']
+        for cookie in cookies:
+            session.cookies.set(cookie['name'], cookie['value'])
+        session.headers.update({'User-Agent': user_agent})
+
+    response = session.post(AUTH_URL, data=data)
+
     if response.status_code == 200:
-        return response.cookies
+        logging.info('The request was successful')
+        return session.cookies
     else:
+        logging.error(f'The request failed with status code: {response.status_code}. Please check or verify the username and password.')
+        return None
+
+def authenticate():
+    response = requests.get(YGG_URL)
+    if response.status_code == 403:
+        logging.info('Cloudflare detected')
+        return auth_ygg(cloudflare=True)
+    elif response.status_code == 200:
+        logging.info('No Cloudflare detected')
+        return auth_ygg(cloudflare=False)
+    else:
+        logging.error(f'Unexpected status code: {response.status_code}')
         return None
 
 def get_rss_feed(query_params):
@@ -41,7 +103,7 @@ def replace_torrent_links(rss_content):
         original_url = enclosure.get('url')
         if original_url.startswith(TORRENT_URL):
             params = original_url.split('?')[1]
-            new_url = f"http://{LOCAL_RSS_HOST}:{LOCAL_RSS_PORT}/torrent?{params}"
+            new_url = f"http://{RSS_HOST}:{RSS_PORT}/torrent?{params}"
             enclosure.set('url', new_url)
 
     return etree.tostring(tree, encoding='utf-8', xml_declaration=True)
@@ -64,6 +126,11 @@ def proxy_rss():
 
         response = get_rss_feed(query_params)
 
+    if response.status_code == 403:  # Forbidden, Cloudflare challenge
+        cookies = authenticate()
+        if cookies is None:
+            return jsonify({'error': 'Cloudflare Re-authentication failed'}), 403
+
     if response.status_code == 200:
         modified_rss = replace_torrent_links(response.content)
         return Response(modified_rss, content_type='application/xml; charset=utf-8')
@@ -72,7 +139,7 @@ def proxy_rss():
 
 @app.route('/torrent', methods=['GET'])
 def proxy_torrent():
-    torrent_url = request.url.replace(f"http://{LOCAL_RSS_HOST}:{LOCAL_RSS_PORT}/torrent", TORRENT_URL)
+    torrent_url = request.url.replace(f"http://{RSS_HOST}:{RSS_PORT}/torrent", TORRENT_URL)
 
     if not session.cookies:
         cookies = authenticate()
@@ -93,5 +160,5 @@ def proxy_torrent():
     else:
         return jsonify({'error': 'Failed to retrieve torrent file'}), response.status_code
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=INTERNAL_PORT)
