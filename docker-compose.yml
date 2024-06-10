@@ -20,7 +20,8 @@ services:
       restart: unless-stopped
 
    ygg-rss-proxy:
-      image: testrss
+      image: ygg-rss-proxy:latest
+      build: .
       container_name: ygg-rss-proxy
       expose:
          - 8080

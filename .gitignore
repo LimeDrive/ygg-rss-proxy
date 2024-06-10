@@ -123,6 +123,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env-dev
 .venv
 env/
 venv/
@@ -169,3 +170,5 @@ cython_debug/
 ehthumbs.db
 Thumbs.db
 .old/
+config/
+dev-compose.yml

@@ -30,3 +30,7 @@ coverage.xml
 .pytest_cache
 __pypackages__
 .github
+.env
+dev-compose.yml
+docker-compose.yml
+.docker-compose.yml

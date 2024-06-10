@@ -39,11 +39,11 @@ class Settings(BaseSettings):
 
     # LOGGING
     log_level: LogLevel = LogLevel.INFO
-    log_path: str = "/config/logs/rss-proxy.log"
+    log_path: str = "/app/config/logs/rss-proxy.log"
 
     # FLASK SESSIONS
     secret_key: str = "superkey_that_can_be_changed"
-    db_path: str = "/config/db/rss-proxy.db"
+    db_path: str = "/app/config/rss-proxy.db"
 
     # User-Agent
     user_agent: str = (

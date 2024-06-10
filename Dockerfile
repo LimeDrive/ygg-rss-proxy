@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bullseye
+FROM python:3.11.9-slim-bullseye
 
 RUN pip install poetry
 WORKDIR /app
@@ -10,7 +10,7 @@ RUN poetry config virtualenvs.create false \
 
 COPY . .
 
-RUN mkdir -p /tmp/flask_cache
+RUN mkdir -p /config/{logs,db}
 
 ARG GUNICORN_PORT=8080
 ENV EXPOSE_PORT=${GUNICORN_PORT}

@@ -57,7 +57,7 @@ def proxy_rss():
 
 
 @app.route("/torrent", methods=["GET"])
-def proxy_torrent(ygg_session):
+def proxy_torrent():
     torrent_url = request.url.replace(f"{URL_PROXY}/torrent", URL_TORRENTS)
     ygg_session = get_session()
 
