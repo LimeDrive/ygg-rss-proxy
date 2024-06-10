@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "ygg-rss-proxy"
 version = "0.1.0"
-description = ""
+description = "Proxy for yggtorrent rss feeds"
 authors = ["LimeDrive <limecat@limedrive.eu>"]
 readme = "README.md"
 
@@ -11,6 +11,12 @@ flask = "^3.0.3"
 requests = "^2.32.3"
 lxml = "^5.2.2"
 gunicorn = "^22.0.0"
+pydantic = "^2.7.3"
+loguru = "^0.7.2"
+pydantic-settings = "^2.3.0"
+flask-session = "^0.8.0"
+flask-sqlalchemy = "^3.1.1"
+orjson = "^3.10.4"
 
 
 [build-system]

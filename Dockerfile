@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.11-slim-bullseye
 
 RUN pip install poetry
 WORKDIR /app
@@ -10,9 +10,11 @@ RUN poetry config virtualenvs.create false \
 
 COPY . .
 
-ENV LOCAL_RSS_HOST=localhost
-ENV LOCAL_RSS_PORT=5000
+RUN mkdir -p /tmp/flask_cache
 
-EXPOSE 5000
+ARG GUNICORN_PORT=8080
+ENV EXPOSE_PORT=${GUNICORN_PORT}
 
-CMD ["poetry", "run", "gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "ygg_rss_proxy.proxy:app"]
+EXPOSE ${EXPOSE_PORT}
+
+CMD ["python", "-m", "ygg_rss_proxy"]
