@@ -10,8 +10,6 @@ RUN poetry config virtualenvs.create false \
 
 COPY . .
 
-RUN mkdir -p /config/{logs,db}
-
 ARG GUNICORN_PORT=8080
 ENV EXPOSE_PORT=${GUNICORN_PORT}
 
