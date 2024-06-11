@@ -68,8 +68,11 @@ def ygg_cloudflare_login(
 
     response = fs_solver.request_post(url="https://www.ygg.re", post_data=ygg_playload)
 
+    if not response.solution.cookies:
+        logger.error("Failed to get cookies from flaresolverr")
+        raise Exception("Failed to get cookies from flaresolverr")
+
     if response.solution.status == 200:
-        logger.info("Successfully authenticated to YGG")
         logger.debug(f"Cloudflare cookies: {response.solution.cookies}")
         cookie_jar = cookielib.CookieJar()
         cookies = response.solution.cookies
@@ -97,11 +100,14 @@ def ygg_cloudflare_login(
                         rfc2109=False,
                     )
                 )
+            else:
+                logger.error(f"Failed to get cf_clearance from flaresolverr")
+                raise Exception("Failed to get cf_clearance from flaresolverr")
 
         # Update the session with the new cookies
         session.cookies = cookie_jar
         session.headers.update({"User-Agent": response.solution.user_agent})
-        session.post(URL_AUTH, data=ygg_playload, allow_redirects=True)
+        ygg_basic_login(session=session, ygg_playload= ygg_playload)
         logger.debug(f"Session cookies: {session.cookies}")
         return session
     else:
