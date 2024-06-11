@@ -91,13 +91,13 @@ C'est pour illustré l'utilisation de l'application avec d'autres services.
          restart: unless-stopped
 
       ygg-rss-proxy:
-         image: testrss
+         image: ghcr.io/limedrive/ygg-rss-proxy:v1.0.0-alpha
          container_name: ygg-rss-proxy
          expose:
             - 8080
          environment:
-            YGG_USER: "StOpCouDflaE"
-            YGG_PASS: "BaDaSS"
+            YGG_USER: "user"
+            YGG_PASS: "pass"
             FLARESOLVERR_HOST: flaresolverr
             LOG_LEVEL: INFO
          volumes:
