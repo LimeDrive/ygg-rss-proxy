@@ -96,6 +96,7 @@ C'est pour illustré l'utilisation de l'application avec d'autres services.
          expose:
             - 8080
          environment:
+            TZ: Europe/Paris
             YGG_USER: "user"
             YGG_PASS: "pass"
             FLARESOLVERR_HOST: flaresolverr
@@ -110,6 +111,7 @@ C'est pour illustré l'utilisation de l'application avec d'autres services.
          image: ghcr.io/flaresolverr/flaresolverr:latest
          container_name: flaresolverr
          environment:
+            TZ: Europe/Paris
             LOG_LEVEL: info
             CAPTCHA_SOLVER: none
          expose:
