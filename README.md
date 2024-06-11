@@ -101,7 +101,7 @@ C'est pour illustré l'utilisation de l'application avec d'autres services.
             FLARESOLVERR_HOST: flaresolverr
             LOG_LEVEL: INFO
          volumes:
-            - ./config:/logs/config
+            - ./config:/app/config
          restart: unless-stopped
          depends_on:
             - flaresolverr
