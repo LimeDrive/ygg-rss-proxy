@@ -107,7 +107,7 @@ def ygg_cloudflare_login(
         # Update the session with the new cookies
         session.cookies = cookie_jar
         session.headers.update({"User-Agent": response.solution.user_agent})
-        ygg_basic_login(session=session, ygg_playload= ygg_playload)
+        session  = ygg_basic_login(session=session, ygg_playload=ygg_playload)
         logger.debug(f"Session cookies: {session.cookies}")
         return session
     else:
