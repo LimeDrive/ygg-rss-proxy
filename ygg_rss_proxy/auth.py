@@ -32,7 +32,8 @@ def ygg_basic_login(
         logger.info("Successfully authenticated to YGG")
         return session
     else:
-        logger.error("Failed to authenticate to YGG")
+        logger.error(f"Failed to authenticate to YGG with status code : {response.status_code}")
+        logger.debug(f"Response content: {response.content}")
         raise Exception("Failed to authenticate to YGG")
 
 
@@ -66,10 +67,11 @@ def ygg_cloudflare_login(
         logger.error("Failed to connect to FlareSolverr, please check our instance")
         raise Exception("Failed to connect to FlareSolverr")
 
-    response = fs_solver.request_post(url="https://www.ygg.re", post_data=ygg_playload)
+    response = fs_solver.request_get(url="https://www.ygg.re")
 
     if not response.solution.cookies:
         logger.error("Failed to get cookies from flaresolverr")
+        logger.debug(f"Response content: {response.solution}")
         raise Exception("Failed to get cookies from flaresolverr")
 
     if response.solution.status == 200:
@@ -102,6 +104,8 @@ def ygg_cloudflare_login(
                 )
             else:
                 logger.error(f"Failed to get cf_clearance from flaresolverr")
+                logger.debug(f"Response cookies: {response.solution.cookies}")
+                logger.debug(f"Response : {response.solution.response}")
                 raise Exception("Failed to get cf_clearance from flaresolverr")
 
         # Update the session with the new cookies
@@ -111,7 +115,8 @@ def ygg_cloudflare_login(
         logger.debug(f"Session cookies: {session.cookies}")
         return session
     else:
-        logger.error("Failed to authenticate to YGG")
+        logger.debug(f"Response : {response.solution.response}")
+        logger.error(f"Failed to authenticate to YGG with status code : {response.solution.status}")
         raise Exception("Failed to authenticate to YGG")
 
 
