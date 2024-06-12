@@ -12,7 +12,9 @@ def obfuscate_sensitive_info(message):
     message = re.sub(r'passkey=[^&]+', 'passkey=********', message)
     # Hide the ygg_ cookie value
     message = re.sub(r'ygg_=[^;]+', 'ygg_=********', message)
+    # Hide the value field in cookies
     message = re.sub(r"'value': '([^']+)'", "'value': '********'", message)
+    
     # Check if the message is a dictionary
     if isinstance(message, dict):
         # Check if the message contains a 'value' field
@@ -21,31 +23,35 @@ def obfuscate_sensitive_info(message):
             message['value'] = '********'
         # Convert the dictionary to a string
         message = json.dumps(message)
-
-
-
+    
     # Parse the message as JSON
     try:
         data = json.loads(message)
     except json.JSONDecodeError:
         return message
-
+    
     # Obfuscate the password and ID
     if 'pass' in data:
         data['pass'] = '********'
     if 'id' in data:
         data['id'] = '********'
-
+    
     # Return the obfuscated message
     return json.dumps(data)
 
+# Custom filter function to apply obfuscation
+def filter_obfuscate(record):
+    record["message"] = obfuscate_sensitive_info(record["message"])
+    return True
+
 logger.remove()
+
 logger.add(
     sys.stdout,
     format="{time} {level} {function} {message}",
     level=settings.log_level.value,
     colorize=True,
-    filter=lambda record: obfuscate_sensitive_info(record["message"])
+    filter=filter_obfuscate
 )
 
 logger.add(
@@ -56,7 +62,7 @@ logger.add(
     retention="5 days",
     compression="zip",
     enqueue=True,
-    filter=lambda record: obfuscate_sensitive_info(record["message"])
+    filter=filter_obfuscate
 )
 
 
