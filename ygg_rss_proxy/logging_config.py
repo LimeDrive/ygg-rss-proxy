@@ -13,6 +13,17 @@ def obfuscate_sensitive_info(message):
     # Hide the ygg_ cookie value
     message = re.sub(r'ygg_=[^;]+', 'ygg_=********', message)
     message = re.sub(r"'value': '([^']+)'", "'value': '********'", message)
+    # Check if the message is a dictionary
+    if isinstance(message, dict):
+        # Check if the message contains a 'value' field
+        if 'value' in message:
+            # Hide the ygg_ cookie value
+            message['value'] = '********'
+        # Convert the dictionary to a string
+        message = json.dumps(message)
+
+
+
     # Parse the message as JSON
     try:
         data = json.loads(message)
