@@ -79,6 +79,7 @@ def ygg_cloudflare_login(
         cookie_jar = cookielib.CookieJar()
         cookies = response.solution.cookies
 
+        cf_clearance_found = False
         for cookie in cookies:
             if cookie["name"] == "cf_clearance":
                 cookie_jar.set_cookie(
@@ -102,12 +103,15 @@ def ygg_cloudflare_login(
                         rfc2109=False,
                     )
                 )
-            else:
-                logger.error(f"Failed to get cf_clearance from flaresolverr")
-                logger.debug(f"Response cookies: {response.solution.cookies}")
-                logger.debug(f"Response : {response.solution.response}")
-                raise Exception("Failed to get cf_clearance from flaresolverr")
-
+                cf_clearance_found = True
+                break
+        #
+        if not cf_clearance_found:
+            logger.error(f"Failed to get cf_clearance from flaresolverr")
+            logger.debug(f"Response cookies: {response.solution.cookies}")
+            logger.debug(f"Response : {response.solution.response}")
+            raise Exception("Failed to get cf_clearance from flaresolverr")
+        
         # Update the session with the new cookies
         session.cookies = cookie_jar
         session.headers.update({"User-Agent": response.solution.user_agent})
