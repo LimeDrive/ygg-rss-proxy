@@ -5,18 +5,25 @@ import sys
 import logging
 import inspect
 import json
+import re
 
 def obfuscate_sensitive_info(message):
+    # Hide the passkey in the URL
+    message = re.sub(r'passkey=[^&]+', 'passkey=********', message)
+    # Hide the ygg_ cookie value
+    message = re.sub(r'ygg_=[^;]+', 'ygg_=********', message)
+    message = re.sub
+    # Parse the message as JSON
     try:
         data = json.loads(message)
     except json.JSONDecodeError:
         return message
-
+    # Obfuscate the password and ID
     if 'pass' in data:
         data['pass'] = '********'
     if 'id' in data:
         data['id'] = '********'
-
+    # Return the obfuscated message
     return json.dumps(data)
 
 logger.remove()
