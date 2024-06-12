@@ -32,11 +32,13 @@ def ygg_basic_login(
         logger.info("Successfully authenticated to YGG")
         return session
     else:
+        logger.debug(f"Response url : {response.url}")
         logger.error(
             f"Failed to authenticate to YGG with status code : {response.status_code}"
         )
-        logger.debug(f"Response content: {response.content}")
-        raise Exception("Failed to authenticate to YGG")
+        raise Exception(
+            f"Failed to authenticate to YGG with status code : {response.status_code}"
+        )
 
 
 def ygg_cloudflare_login(
@@ -73,12 +75,10 @@ def ygg_cloudflare_login(
     logger.debug(f"FlareSolverr response: {response}")
 
     if not response.solution.cookies:
-        logger.error("Failed to get cookies from flaresolverr")
-        logger.debug(f"Response content: {response.solution}")
+        logger.error(f"Failed to get cookies from flaresolverr : {response.solution.cookies}")
         raise Exception("Failed to get cookies from flaresolverr")
 
-    if response.solution.status == 200:
-        logger.debug(f"Cloudflare cookies: {response.solution.cookies}")
+    if response.message == "Challenge solved!" and response.solution.status == 200:
         cookie_jar = cookielib.CookieJar()
         cookies = response.solution.cookies
 
@@ -110,9 +110,8 @@ def ygg_cloudflare_login(
                 break
         # Check if cf_clearance cookie is found
         if not cf_clearance_found:
+            logger.debug(f"Response : {response}")
             logger.error(f"Failed to get cf_clearance from flaresolverr")
-            logger.debug(f"Response cookies: {response.solution.cookies}")
-            logger.debug(f"Response : {response.solution.response}")
             raise Exception("Failed to get cf_clearance from flaresolverr")
 
         # Update the session with the new cookies
@@ -122,8 +121,6 @@ def ygg_cloudflare_login(
         logger.debug(f"Session cookies: {session.cookies}")
         return session
     else:
-        logger.debug(f"Response : {response.solution.response}")
-        logger.debug(f"Response cookie: {response.solution.cookies}")
         logger.error(
             f"Failed to authenticate to YGG with status code : {response.solution.status}"
         )
