@@ -70,6 +70,7 @@ def ygg_cloudflare_login(
         raise Exception("Failed to connect to FlareSolverr")
 
     response = fs_solver.request_get(url="https://www.ygg.re")
+    logger.debug(f"FlareSolverr response: {response}")
 
     if not response.solution.cookies:
         logger.error("Failed to get cookies from flaresolverr")
@@ -122,6 +123,7 @@ def ygg_cloudflare_login(
         return session
     else:
         logger.debug(f"Response : {response.solution.response}")
+        logger.debug(f"Response cookie: {response.solution.cookies}")
         logger.error(
             f"Failed to authenticate to YGG with status code : {response.solution.status}"
         )
