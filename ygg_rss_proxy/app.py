@@ -43,6 +43,7 @@ def proxy_rss():
 
     if response.status_code in [401, 403, 307, 301]:
         # Session may have expired, re-authenticate and retry the request
+        logger.debug(f"Response status : {response.status_code}")
         logger.info("Session may have expired, re-authenticating...")
         ygg_session = new_session()
         response = get_rss_feed(query_params, requests_session=ygg_session)
@@ -69,6 +70,7 @@ def proxy_torrent():
         307,
         301,
     ]:  # Unauthorized, session may have expired
+        logger.debug(f"Response status : {response.status_code}")
         logger.info("Session may have expired, re-authenticating...")
         ygg_session = new_session()
         response = ygg_session.get(torrent_url)

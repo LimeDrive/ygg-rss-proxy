@@ -91,13 +91,14 @@ C'est pour illustré l'utilisation de l'application avec d'autres services.
          restart: unless-stopped
 
       ygg-rss-proxy:
-         image: ghcr.io/limedrive/ygg-rss-proxy:v1.0.0-alpha
+         image: ghcr.io/limedrive/ygg-rss-proxy:latest
          container_name: ygg-rss-proxy
          expose:
             - 8080
          environment:
-            YGG_USER: "user"
-            YGG_PASS: "pass"
+            TZ: Europe/Paris
+            YGG_USER: 'User'
+            YGG_PASS: 'passw0rd'
             FLARESOLVERR_HOST: flaresolverr
             LOG_LEVEL: INFO
          volumes:
@@ -110,6 +111,7 @@ C'est pour illustré l'utilisation de l'application avec d'autres services.
          image: ghcr.io/flaresolverr/flaresolverr:latest
          container_name: flaresolverr
          environment:
+            TZ: Europe/Paris
             LOG_LEVEL: info
             CAPTCHA_SOLVER: none
          expose:

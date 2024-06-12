@@ -32,7 +32,9 @@ def ygg_basic_login(
         logger.info("Successfully authenticated to YGG")
         return session
     else:
-        logger.error(f"Failed to authenticate to YGG with status code : {response.status_code}")
+        logger.error(
+            f"Failed to authenticate to YGG with status code : {response.status_code}"
+        )
         logger.debug(f"Response content: {response.content}")
         raise Exception("Failed to authenticate to YGG")
 
@@ -105,22 +107,24 @@ def ygg_cloudflare_login(
                 )
                 cf_clearance_found = True
                 break
-        #
+        # Check if cf_clearance cookie is found
         if not cf_clearance_found:
             logger.error(f"Failed to get cf_clearance from flaresolverr")
             logger.debug(f"Response cookies: {response.solution.cookies}")
             logger.debug(f"Response : {response.solution.response}")
             raise Exception("Failed to get cf_clearance from flaresolverr")
-        
+
         # Update the session with the new cookies
         session.cookies = cookie_jar
         session.headers.update({"User-Agent": response.solution.user_agent})
-        session  = ygg_basic_login(session=session, ygg_playload=ygg_playload)
+        session = ygg_basic_login(session=session, ygg_playload=ygg_playload)
         logger.debug(f"Session cookies: {session.cookies}")
         return session
     else:
         logger.debug(f"Response : {response.solution.response}")
-        logger.error(f"Failed to authenticate to YGG with status code : {response.solution.status}")
+        logger.error(
+            f"Failed to authenticate to YGG with status code : {response.solution.status}"
+        )
         raise Exception("Failed to authenticate to YGG")
 
 
