@@ -32,8 +32,13 @@ def ygg_basic_login(
         logger.info("Successfully authenticated to YGG")
         return session
     else:
-        logger.error("Failed to authenticate to YGG")
-        raise Exception("Failed to authenticate to YGG")
+        logger.debug(f"Response url : {response.url}")
+        logger.error(
+            f"Failed to authenticate to YGG with status code : {response.status_code}"
+        )
+        raise Exception(
+            f"Failed to authenticate to YGG with status code : {response.status_code}"
+        )
 
 
 def ygg_cloudflare_login(
@@ -66,14 +71,18 @@ def ygg_cloudflare_login(
         logger.error("Failed to connect to FlareSolverr, please check our instance")
         raise Exception("Failed to connect to FlareSolverr")
 
-    response = fs_solver.request_post(url="https://www.ygg.re", post_data=ygg_playload)
+    response = fs_solver.request_get(url="https://www.ygg.re")
+    logger.debug(f"FlareSolverr response: {response}")
 
-    if response.solution.status == 200:
-        logger.info("Successfully authenticated to YGG")
-        logger.debug(f"Cloudflare cookies: {response.solution.cookies}")
+    if not response.solution.cookies:
+        logger.error(f"Failed to get cookies from flaresolverr : {response.solution.cookies}")
+        raise Exception("Failed to get cookies from flaresolverr")
+
+    if response.message == "Challenge solved!":
         cookie_jar = cookielib.CookieJar()
         cookies = response.solution.cookies
 
+        cf_clearance_found = False
         for cookie in cookies:
             if cookie["name"] == "cf_clearance":
                 cookie_jar.set_cookie(
@@ -97,15 +106,24 @@ def ygg_cloudflare_login(
                         rfc2109=False,
                     )
                 )
+                cf_clearance_found = True
+                break
+        # Check if cf_clearance cookie is found
+        if not cf_clearance_found:
+            logger.debug(f"Response : {response}")
+            logger.error(f"Failed to get cf_clearance from flaresolverr")
+            raise Exception("Failed to get cf_clearance from flaresolverr")
 
         # Update the session with the new cookies
         session.cookies = cookie_jar
         session.headers.update({"User-Agent": response.solution.user_agent})
-        session.post(URL_AUTH, data=ygg_playload, allow_redirects=True)
+        session = ygg_basic_login(session=session, ygg_playload=ygg_playload)
         logger.debug(f"Session cookies: {session.cookies}")
         return session
     else:
-        logger.error("Failed to authenticate to YGG")
+        logger.error(
+            f"Failed to authenticate to YGG with status code : {response.solution.status}"
+        )
         raise Exception("Failed to authenticate to YGG")
 
 
