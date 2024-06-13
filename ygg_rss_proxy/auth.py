@@ -78,7 +78,7 @@ def ygg_cloudflare_login(
         logger.error(f"Failed to get cookies from flaresolverr : {response.solution.cookies}")
         raise Exception("Failed to get cookies from flaresolverr")
 
-    if response.message == "Challenge solved!" and response.solution.status == 200:
+    if response.message == "Challenge solved!":
         cookie_jar = cookielib.CookieJar()
         cookies = response.solution.cookies
 
