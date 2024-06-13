@@ -975,6 +975,17 @@ pymysql = ["pymysql"]
 sqlcipher = ["sqlcipher3_binary"]
 
 [[package]]
+name = "stackprinter"
+version = "0.2.12"
+description = "Debug-friendly stack traces, with variable values and semantic highlighting"
+optional = false
+python-versions = ">=3.4"
+files = [
+    {file = "stackprinter-0.2.12-py3-none-any.whl", hash = "sha256:0a0623d46a5babd7a8a9787f605f4dd4a42d6ff7aee140541d5e9291a506e8d9"},
+    {file = "stackprinter-0.2.12.tar.gz", hash = "sha256:271efc75ebdcc1554e58168ea7779f98066d54a325f57c7dc19f10fa998ef01e"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.12.2"
 description = "Backported and Experimental Type Hints for Python 3.8+"
@@ -1036,4 +1047,4 @@ dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "73fac847cda3595c953396a810cc4221ed87d79544197c274ccb7c5922709bf4"
+content-hash = "5a24f7721e06505143afe012ff41f7df60dadef55de2035a3a0279c1f914905c"

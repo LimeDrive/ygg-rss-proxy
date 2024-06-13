@@ -4,67 +4,60 @@ from ygg_rss_proxy.settings import settings
 import sys
 import logging
 import inspect
-import json
 import re
+import stackprinter
 
-def obfuscate_sensitive_info(message):
-    # Hide the passkey in the URL
-    message = re.sub(r'passkey=[^&]+', 'passkey=********', message)
-    # Hide the ygg_ cookie value
-    message = re.sub(r'ygg_=[^;]+', 'ygg_=********', message)
-    # Hide the value field in cookies
-    message = re.sub(r"'value': '([^']+)'", "'value': '********'", message)
-    
-    # Check if the message is a dictionary
-    if isinstance(message, dict):
-        # Check if the message contains a 'value' field
-        if 'value' in message:
-            # Hide the ygg_ cookie value
-            message['value'] = '********'
-        # Convert the dictionary to a string
-        message = json.dumps(message)
-    
-    # Parse the message as JSON
-    try:
-        data = json.loads(message)
-    except json.JSONDecodeError:
+class SecretFilter:
+    def __init__(self, patterns):
+        self._patterns = patterns
+        
+    def __call__(self, record):
+        record["message"] = self.redact(record["message"])
+        if "stack" in record["extra"]:
+            record["extra"]["stack"] = self.redact(record["extra"]["stack"])
+        return record
+
+    def redact(self, message):
+        for pattern in self._patterns:
+            message = re.sub(pattern, "********", message)
         return message
-    
-    # Obfuscate the password and ID
-    if 'pass' in data:
-        data['pass'] = '********'
-    if 'id' in data:
-        data['id'] = '********'
-    
-    # Return the obfuscated message
-    return json.dumps(data)
 
-# Custom filter function to apply obfuscation
-def filter_obfuscate(record):
-    record["message"] = obfuscate_sensitive_info(record["message"])
-    return True
+patterns = [
+    r'passkey=[^&]+',
+    r"'value': '([^']+)'",
+    r'value=\'[^\']+\''
+]
 
+# Configuration de Loguru
 logger.remove()
 
+# Fonction de formatage des exceptions avec Stackprinter
+def format(record):
+    format_ = "{time} {level} {function} {message}\n"
+    if record["exception"] is not None:
+        record["extra"]["stack"] = stackprinter.format(record["exception"], suppressed_vars=[r".*ygg_playload.*", r".*query_params.*"])
+        format_ += "{extra[stack]}\n"
+    return format_
+
+# Ajout des handlers avec le format personnalisé
 logger.add(
     sys.stdout,
-    format="{time} {level} {function} {message}",
+    format=format,
     level=settings.log_level.value,
     colorize=True,
-    filter=filter_obfuscate
+    filter=SecretFilter(patterns)
 )
 
 logger.add(
     settings.log_path,
-    format="{time} {level} {function} {message}",
+    format=format,
     level="DEBUG",
     rotation="5 MB",
     retention="5 days",
     compression="zip",
     enqueue=True,
-    filter=filter_obfuscate
+    filter=SecretFilter(patterns)
 )
-
 
 class InterceptHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
@@ -82,7 +75,6 @@ class InterceptHandler(logging.Handler):
         logger.opt(depth=depth, exception=record.exc_info).log(
             level, record.getMessage()
         )
-
 
 logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
 logging.getLogger("flask").setLevel(logging.DEBUG)
