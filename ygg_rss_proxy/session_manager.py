@@ -1,9 +1,19 @@
 import requests
 import pickle
 from flask import session
+from sqlalchemy import text
 from requests.utils import dict_from_cookiejar, cookiejar_from_dict
 from ygg_rss_proxy.auth import ygg_login
+from ygg_rss_proxy.logging_config import logger
 
+def check_database_connection():
+    from ygg_rss_proxy.app import db
+    try:
+        with db.engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except Exception as e:
+        logger.error(f"Failed to connect to the database: {e}")
+        raise Exception("Failed to connect to the database")
 
 def new_session() -> requests.Session:
     """
@@ -12,6 +22,7 @@ def new_session() -> requests.Session:
     Returns:
         requests.Session: The newly created session.
     """
+    check_database_connection()
     ygg_session = ygg_login()
     session_data = {
         "cookies": pickle.dumps(dict_from_cookiejar(ygg_session.cookies)),
@@ -29,6 +40,7 @@ def init_session() -> None:
     Returns:
         None
     """
+    check_database_connection()
     if "session_data" not in session:
         new_session()
 
@@ -42,6 +54,7 @@ def get_session() -> requests.Session:
     Returns:
         requests.Session: The retrieved or newly created session.
     """
+    check_database_connection()
     if "session_data" in session:
         session_data = pickle.loads(session["session_data"])
         if "cookies" not in session_data or "headers" not in session_data:
@@ -68,6 +81,7 @@ def save_session(requests_session: requests.Session) -> None:
     Returns:
         None
     """
+    check_database_connection()
     session_data = {
         "cookies": pickle.dumps(dict_from_cookiejar(requests_session.cookies)),
         "headers": pickle.dumps(dict(requests_session.headers)),

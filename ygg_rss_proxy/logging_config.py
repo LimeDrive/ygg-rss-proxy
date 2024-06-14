@@ -23,9 +23,11 @@ class SecretFilter:
         return message
 
 patterns = [
-    r'passkey=[^&]+',
+    r'passkey=[^&\s]+',
     r"'value': '([^']+)'",
-    r'value=\'[^\']+\''
+    r'value=\'[^\']+\'',
+    r'cf_clearance=[^;\s]+',
+    r'ygg_=[^;\s]+'
 ]
 
 # Configuration de Loguru
