@@ -15,13 +15,14 @@ app = Flask(__name__)
 
 app.config["SESSION_TYPE"] = "sqlalchemy"
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{settings.db_path}"
-app.config["SESSION_SQLALCHEMY"] = SQLAlchemy(app)
 app.config["SESSION_SQLALCHEMY_TABLE"] = "sessions"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_USE_SIGNER"] = True
 app.config["SESSION_KEY_PREFIX"] = "session:"
 app.config["SECRET_KEY"] = settings.secret_key
+db = SQLAlchemy(app)
+app.config["SESSION_SQLALCHEMY"] = db
 
 URL_TORRENTS = f"{settings.ygg_url}/rss/download"
 URL_PROXY = f"{settings.rss_shema}://{settings.rss_host}:{settings.rss_port}"
