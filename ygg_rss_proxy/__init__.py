@@ -8,6 +8,7 @@ options = {
     "bind": f"{settings.gunicorn_binder}:{settings.gunicorn_port}",
     "workers": settings.gunicorn_workers,
     "preload_app": True,
+    "timeout": settings.gunicorn_timeout,
 }
 
 logger.info("----------------------------------------------------------")
