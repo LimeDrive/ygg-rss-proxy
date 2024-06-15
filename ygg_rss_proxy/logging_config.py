@@ -45,7 +45,7 @@ def format(record):
         r"ygg_=[^;\s]+",
         r"[A-Za-z0-9]+\' \[GET\] of ygg_rss_proxy\.app>",
         r"session:[A-Za-z0-9_-]+",
-        r"\b[A-Za-z0-9_-]{55,}\b(?!\")",
+        r"(\{'session_data':\s*b'|<Session data b'|serialized_session_data\s*=\s*b')[\s\S]*?\.(?=\s)",
     ]
 
     if record["exception"] is not None:
