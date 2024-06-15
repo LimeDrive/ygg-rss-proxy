@@ -1,5 +1,6 @@
 import requests
 import timeout_decorator
+from tenacity import retry, stop_after_attempt, wait_fixed
 from ygg_rss_proxy.fspy import FlareSolverr
 from ygg_rss_proxy.settings import settings
 from ygg_rss_proxy.logging_config import logger
@@ -130,6 +131,13 @@ def ygg_cloudflare_login(
         )
         raise Exception("Failed to authenticate to YGG using flaresolverr")
 
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_fixed(0.3),
+    retry_error_callback=lambda retry_state: Exception(
+        "Failed to connect to YGG after retries"
+    ),
+)
 @timeout_decorator.timeout(90, exception_message=f"Timeout after 90 seconds")
 def ygg_login(
     session=requests.Session(), ygg_playload: dict = ygg_playload
