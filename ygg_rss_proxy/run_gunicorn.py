@@ -2,6 +2,7 @@
 from gunicorn.app.base import BaseApplication
 from ygg_rss_proxy.app import app
 
+
 class GunicornApp(BaseApplication):
     def __init__(self, app, options=None):
         self.options = options or {}

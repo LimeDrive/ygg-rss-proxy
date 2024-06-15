@@ -44,7 +44,10 @@ class Settings(BaseSettings):
 
     # FLASK SESSIONS
     secret_key: str = "superkey_that_can_be_changed"
+
+    # SQLITE
     db_path: str = "/app/config/rss-proxy.db"
+    db_timeout: int = 15
 
     # User-Agent
     user_agent: str = (

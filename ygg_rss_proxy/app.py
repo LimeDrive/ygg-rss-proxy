@@ -22,6 +22,10 @@ app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_USE_SIGNER"] = True
 app.config["SESSION_KEY_PREFIX"] = "session:"
 app.config["SECRET_KEY"] = settings.secret_key
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "connect_args": {"timeout": settings.db_timeout}
+}
+
 db = SQLAlchemy(app)
 app.config["SESSION_SQLALCHEMY"] = db
 

@@ -24,7 +24,11 @@ logger.info("----------------------------------------------------------")
 logger.info("Checking directories...")
 logger.info("----------------------------------------------------------")
 
-directories = ["/app/config", os.path.dirname(settings.db_path), os.path.dirname(settings.log_path)]
+directories = [
+    "/app/config",
+    os.path.dirname(settings.db_path),
+    os.path.dirname(settings.log_path),
+]
 for directory in directories:
     if not os.path.exists(directory):
         os.makedirs(directory)

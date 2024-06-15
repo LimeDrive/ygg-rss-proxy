@@ -80,7 +80,9 @@ def ygg_cloudflare_login(
     logger.debug(f"FlareSolverr cookies: {response.solution.cookies}")
 
     if not response.solution.cookies:
-        logger.error(f"Failed to get cookies from flaresolverr : {response.solution.cookies}")
+        logger.error(
+            f"Failed to get cookies from flaresolverr : {response.solution.cookies}"
+        )
         raise Exception("Failed to get cookies from flaresolverr")
 
     if response.message == "Challenge solved!":
@@ -130,6 +132,7 @@ def ygg_cloudflare_login(
             f"Failed to authenticate to YGG using flaresolverr: {response.solution.status}"
         )
         raise Exception("Failed to authenticate to YGG using flaresolverr")
+
 
 @retry(
     stop=stop_after_attempt(3),
