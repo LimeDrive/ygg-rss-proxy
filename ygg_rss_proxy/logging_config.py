@@ -7,10 +7,11 @@ import inspect
 import re
 import stackprinter
 
+
 class SecretFilter:
     def __init__(self, patterns):
         self._patterns = patterns
-        
+
     def __call__(self, record):
         record["message"] = self.redact(record["message"])
         if "stack" in record["extra"]:
@@ -19,47 +20,63 @@ class SecretFilter:
 
     def redact(self, message):
         for pattern in self._patterns:
-            message = re.sub(pattern, "********", message)
+            message = re.sub(pattern, "**<REDACTED>**", message)
         return message
 
+
 patterns = [
-    r'passkey=[^&\s]+',
+    r"passkey=[^&\s]+",
     r"'value': '([^']+)'",
-    r'value=\'[^\']+\'',
-    r'cf_clearance=[^;\s]+',
-    r'ygg_=[^;\s]+'
+    r"value=\'[^\']+\'",
+    r"cf_clearance=[^;\s]+",
+    r"ygg_=[^;\s]+",
 ]
 
-# Configuration de Loguru
 logger.remove()
 
-# Fonction de formatage des exceptions avec Stackprinter
+
 def format(record):
     format_ = "{time} {level} {function} {message}\n"
+    pats = [
+        r"passkey=[^&\s]+",
+        r"'value': '([^']+)'",
+        r"value=\'[^\']+\'",
+        r"cf_clearance=[^;\s]+",
+        r"ygg_=[^;\s]+",
+        r"[A-Za-z0-9]+\' \[GET\] of ygg_rss_proxy\.app>",
+    ]
+
     if record["exception"] is not None:
-        record["extra"]["stack"] = stackprinter.format(record["exception"], suppressed_vars=[r".*ygg_playload.*", r".*query_params.*"])
+        stack = stackprinter.format(
+            record["exception"],
+            suppressed_vars=[r".*ygg_playload.*", r".*query_params.*"],
+        )
+        for pat in pats:
+            stack = re.sub(pat, "**<REDACTED>**", stack)
+        record["extra"]["stack"] = stack
         format_ += "{extra[stack]}\n"
     return format_
 
-# Ajout des handlers avec le format personnalisé
+
 logger.add(
     sys.stdout,
     format=format,
     level=settings.log_level.value,
     colorize=True,
-    filter=SecretFilter(patterns)
+    filter=SecretFilter(patterns),
 )
 
 logger.add(
     settings.log_path,
     format=format,
     level="DEBUG",
-    rotation="5 MB",
+    rotation="2 MB",
     retention="5 days",
     compression="zip",
     enqueue=True,
-    filter=SecretFilter(patterns)
+    filter=SecretFilter(patterns),
 )
+
 
 class InterceptHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:
@@ -77,6 +94,7 @@ class InterceptHandler(logging.Handler):
         logger.opt(depth=depth, exception=record.exc_info).log(
             level, record.getMessage()
         )
+
 
 logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
 logging.getLogger("flask").setLevel(logging.DEBUG)
