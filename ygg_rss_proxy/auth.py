@@ -73,7 +73,10 @@ def ygg_cloudflare_login(
         raise Exception("Failed to connect to FlareSolverr")
 
     response = fs_solver.request_get(url="https://www.ygg.re")
-    logger.debug(f"FlareSolverr response: {response}")
+    logger.debug(f"FlareSolverr message: {response.message}")
+    logger.debug(f"FlareSolverr status: {response.solution.status}")
+    logger.debug(f"FlareSolverr user-agent: {response.solution.user_agent}")
+    logger.debug(f"FlareSolverr cookies: {response.solution.cookies}")
 
     if not response.solution.cookies:
         logger.error(f"Failed to get cookies from flaresolverr : {response.solution.cookies}")
@@ -111,7 +114,7 @@ def ygg_cloudflare_login(
                 break
         # Check if cf_clearance cookie is found
         if not cf_clearance_found:
-            logger.debug(f"Response : {response}")
+            logger.debug(f"Full flaresolverr Response : {response}")
             logger.error(f"Failed to get cf_clearance from flaresolverr")
             raise Exception("Failed to get cf_clearance from flaresolverr")
 
@@ -123,9 +126,9 @@ def ygg_cloudflare_login(
         return session
     else:
         logger.error(
-            f"Failed to authenticate to YGG with status code : {response.solution.status}"
+            f"Failed to authenticate to YGG using flaresolverr: {response.solution.status}"
         )
-        raise Exception("Failed to authenticate to YGG")
+        raise Exception("Failed to authenticate to YGG using flaresolverr")
 
 @timeout_decorator.timeout(90, exception_message=f"Timeout after 90 seconds")
 def ygg_login(
@@ -150,7 +153,7 @@ def ygg_login(
         logger.info("Cloudflare is enabled, using FlareSolverr")
         return ygg_cloudflare_login(session, ygg_playload)
     else:
-        logger.info("Cloudflare is disabled, using basic login")
+        logger.info("Cloudflare is disabled, using Basic Login")
         return ygg_basic_login(session, ygg_playload)
 
 
