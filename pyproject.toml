@@ -18,6 +18,7 @@ flask-session = "^0.8.0"
 flask-sqlalchemy = "^3.1.1"
 orjson = "^3.10.4"
 stackprinter = "^0.2.12"
+timeout-decorator = "^0.5.0"
 
 
 [build-system]

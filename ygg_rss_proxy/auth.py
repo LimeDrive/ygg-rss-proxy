@@ -1,4 +1,5 @@
 import requests
+import timeout_decorator
 from ygg_rss_proxy.fspy import FlareSolverr
 from ygg_rss_proxy.settings import settings
 from ygg_rss_proxy.logging_config import logger
@@ -126,7 +127,7 @@ def ygg_cloudflare_login(
         )
         raise Exception("Failed to authenticate to YGG")
 
-
+@timeout_decorator.timeout(90, exception_message=f"Timeout after 90 seconds")
 def ygg_login(
     session=requests.Session(), ygg_playload: dict = ygg_playload
 ) -> requests.Session:

@@ -2,10 +2,12 @@ import requests
 import pickle
 from flask import session
 from sqlalchemy import text
+import timeout_decorator
 from requests.utils import dict_from_cookiejar, cookiejar_from_dict
 from ygg_rss_proxy.auth import ygg_login
 from ygg_rss_proxy.logging_config import logger
 
+@timeout_decorator.timeout(3, exception_message=f"Timeout after 3 seconds")
 def check_database_connection():
     from ygg_rss_proxy.app import db
     try:
@@ -44,7 +46,7 @@ def init_session() -> None:
     if "session_data" not in session:
         new_session()
 
-
+@timeout_decorator.timeout(90, exception_message=f"Timeout after 90 seconds")
 def get_session() -> requests.Session:
     """
     This function retrieves a session by checking if session data exists.

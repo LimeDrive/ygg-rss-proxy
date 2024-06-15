@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, Response
 from flask_session import Session
 from flask_sqlalchemy import SQLAlchemy
+from timeout_decorator import TimeoutError
 from ygg_rss_proxy.rss import get_rss_feed, replace_torrent_links
 from ygg_rss_proxy.settings import settings
 from ygg_rss_proxy.logging_config import logger
@@ -40,7 +41,10 @@ def proxy_rss():
     query_params = request.query_string.decode("utf-8")
     ygg_session = get_session()
 
-    response = get_rss_feed(query_params, requests_session=ygg_session)
+    try:
+        response = get_rss_feed(query_params, requests_session=ygg_session)
+    except TimeoutError as e:
+        logger.error(f"Timeout Err: {e}")
 
     if response.status_code in [401, 403, 307, 301]:
         # Session may have expired, re-authenticate and retry the request
