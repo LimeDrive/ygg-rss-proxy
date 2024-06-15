@@ -56,6 +56,9 @@ class Settings(BaseSettings):
     dev_host: str = "0.0.0.0"
     dev_port: int = 8080
 
+    # Version
+    version_path: str = "/app/pyproject.toml"
+
     model_config = SettingsConfigDict(
         env_file=".env", secrets_dir="/run/secrets", env_file_encoding="utf-8"
     )

@@ -3,6 +3,7 @@ from ygg_rss_proxy.settings import settings
 from ygg_rss_proxy.app import app
 from ygg_rss_proxy.logging_config import logger
 from ygg_rss_proxy.run_gunicorn import GunicornApp
+from ygg_rss_proxy.version import get_version
 
 options = {
     "bind": f"{settings.gunicorn_binder}:{settings.gunicorn_port}",
@@ -10,6 +11,14 @@ options = {
     "preload_app": True,
     "timeout": settings.gunicorn_timeout,
 }
+
+try:
+    version = get_version()
+    logger.info("----------------------------------------------------------")
+    logger.info(f"ygg_rss_proxy version: {version}")
+except:
+    logger.info("----------------------------------------------------------")
+    logger.info("ygg_rss_proxy version: unknown")
 
 logger.info("----------------------------------------------------------")
 logger.info("Checking directories...")
