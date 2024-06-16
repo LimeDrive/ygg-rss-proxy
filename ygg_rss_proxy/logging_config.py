@@ -7,6 +7,7 @@ import inspect
 import re
 import stackprinter
 
+REDACTED = settings.log_redacted
 
 class SecretFilter:
     def __init__(self, patterns):
@@ -25,11 +26,11 @@ class SecretFilter:
 
 
 patterns = [
-    r"passkey=[^&\s]+",
+    r"passkey=([^&\s]+)",
     r"'value': '([^']+)'",
-    r"value=\'[^\']+\'",
-    r"cf_clearance=[^;\s]+",
-    r"ygg_=[^;\s]+",
+    r"value='([^']+)'",
+    r"cf_clearance=([^;\s]+)",
+    r"ygg_=([^;\s]+)"
 ]
 
 logger.remove()
@@ -38,12 +39,12 @@ logger.remove()
 def format(record):
     format_ = "{time} {level} {function} {message}\n"
     pats = [
-        r"passkey=[^&\s]+",
+        r"passkey=([^&\s]+)",
         r"'value': '([^']+)'",
-        r"value=\'[^\']+\'",
-        r"cf_clearance=[^;\s]+",
-        r"ygg_=[^;\s]+",
-        r"[A-Za-z0-9]+\' \[GET\] of ygg_rss_proxy\.app>",
+        r"value='([^']+)'",
+        r"cf_clearance=([^;\s]+)",
+        r"ygg_=([^;\s]+)",
+        r"([A-Za-z0-9]+)' \[GET\] of ygg_rss_proxy\.app>",
         r"session:[A-Za-z0-9_-]+",
         r"(\{'session_data':\s*b'|<Session data b'|serialized_session_data\s*=\s*b')[\s\S]*?\.(?=\s)",
     ]
@@ -53,8 +54,9 @@ def format(record):
             record["exception"],
             suppressed_vars=[r".*ygg_playload.*", r".*query_params.*"],
         )
-        for pat in pats:
-            stack = re.sub(pat, "**<REDACTED>**", stack)
+        if REDACTED:
+            for pat in pats:
+                stack = re.sub(pat, "**<REDACTED>**", stack)
         record["extra"]["stack"] = stack
         format_ += "{extra[stack]}\n"
     return format_
@@ -65,7 +67,7 @@ logger.add(
     format=format,
     level=settings.log_level.value,
     colorize=True,
-    filter=SecretFilter(patterns),
+    filter=SecretFilter(patterns) if REDACTED else None,
 )
 
 logger.add(
@@ -76,7 +78,7 @@ logger.add(
     retention="5 days",
     compression="zip",
     enqueue=True,
-    filter=SecretFilter(patterns),
+    filter=SecretFilter(patterns) if REDACTED else None,
 )
 
 

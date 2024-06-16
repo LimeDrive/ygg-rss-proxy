@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     # LOGGING
     log_level: LogLevel = LogLevel.INFO
     log_path: str = "/app/config/logs/rss-proxy.log"
+    log_redacted: bool = True
 
     # FLASK SESSIONS
     secret_key: str = "superkey_that_can_be_changed"
