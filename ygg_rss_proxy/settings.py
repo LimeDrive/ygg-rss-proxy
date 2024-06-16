@@ -41,10 +41,14 @@ class Settings(BaseSettings):
     # LOGGING
     log_level: LogLevel = LogLevel.INFO
     log_path: str = "/app/config/logs/rss-proxy.log"
+    log_redacted: bool = True
 
     # FLASK SESSIONS
     secret_key: str = "superkey_that_can_be_changed"
+
+    # SQLITE
     db_path: str = "/app/config/rss-proxy.db"
+    db_timeout: int = 15
 
     # User-Agent
     user_agent: str = (
@@ -55,6 +59,9 @@ class Settings(BaseSettings):
     debug: bool = True
     dev_host: str = "0.0.0.0"
     dev_port: int = 8080
+
+    # Version
+    version_path: str = "/app/pyproject.toml"
 
     model_config = SettingsConfigDict(
         env_file=".env", secrets_dir="/run/secrets", env_file_encoding="utf-8"

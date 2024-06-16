@@ -1,4 +1,6 @@
 import requests
+import timeout_decorator
+from tenacity import retry, stop_after_attempt, wait_fixed
 from ygg_rss_proxy.fspy import FlareSolverr
 from ygg_rss_proxy.settings import settings
 from ygg_rss_proxy.logging_config import logger
@@ -72,10 +74,15 @@ def ygg_cloudflare_login(
         raise Exception("Failed to connect to FlareSolverr")
 
     response = fs_solver.request_get(url="https://www.ygg.re")
-    logger.debug(f"FlareSolverr response: {response}")
+    logger.debug(f"FlareSolverr message: {response.message}")
+    logger.debug(f"FlareSolverr status: {response.solution.status}")
+    logger.debug(f"FlareSolverr user-agent: {response.solution.user_agent}")
+    logger.debug(f"FlareSolverr cookies: {response.solution.cookies}")
 
     if not response.solution.cookies:
-        logger.error(f"Failed to get cookies from flaresolverr : {response.solution.cookies}")
+        logger.error(
+            f"Failed to get cookies from flaresolverr : {response.solution.cookies}"
+        )
         raise Exception("Failed to get cookies from flaresolverr")
 
     if response.message == "Challenge solved!":
@@ -110,7 +117,7 @@ def ygg_cloudflare_login(
                 break
         # Check if cf_clearance cookie is found
         if not cf_clearance_found:
-            logger.debug(f"Response : {response}")
+            logger.debug(f"Full flaresolverr Response : {response}")
             logger.error(f"Failed to get cf_clearance from flaresolverr")
             raise Exception("Failed to get cf_clearance from flaresolverr")
 
@@ -122,11 +129,19 @@ def ygg_cloudflare_login(
         return session
     else:
         logger.error(
-            f"Failed to authenticate to YGG with status code : {response.solution.status}"
+            f"Failed to authenticate to YGG using flaresolverr: {response.solution.status}"
         )
-        raise Exception("Failed to authenticate to YGG")
+        raise Exception("Failed to authenticate to YGG using flaresolverr")
 
 
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_fixed(0.3),
+    retry_error_callback=lambda retry_state: Exception(
+        "Failed to connect to YGG after retries"
+    ),
+)
+@timeout_decorator.timeout(90, exception_message=f"Timeout after 90 seconds")
 def ygg_login(
     session=requests.Session(), ygg_playload: dict = ygg_playload
 ) -> requests.Session:
@@ -149,7 +164,7 @@ def ygg_login(
         logger.info("Cloudflare is enabled, using FlareSolverr")
         return ygg_cloudflare_login(session, ygg_playload)
     else:
-        logger.info("Cloudflare is disabled, using basic login")
+        logger.info("Cloudflare is disabled, using Basic Login")
         return ygg_basic_login(session, ygg_playload)
 
 

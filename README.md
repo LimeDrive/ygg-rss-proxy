@@ -45,6 +45,7 @@ Le scripte peut désormais être configuré en utilisant des variables d'environ
 - `GUNICORN_TIMEOUT`: Le délai d'attente pour les requêtes Gunicorn. Par défaut, il est défini sur '120'.
 - `LOG_PATH`: Le chemin du fichier journal pour le serveur proxy. Par défaut, il est défini sur '/app/config/logs/rss-proxy.log'. Il y a une rotaion de fichier journal déja configuré. Attention c'est le chemin dans le container.
 - `LOG_LEVEL`: Le niveau de journalisation pour le serveur proxy. Par défaut, il est défini sur 'INFO'.
+- `LOG_REDACTED`: Si les journaux doivent être anonymisés. Par défaut, il est défini sur 'True'.
 - `DB_PATH`: Le chemin de la base de données SQLite pour le serveur proxy. Par défaut, il est défini sur '/app/config/rss-proxy.db'. Attention c'est le chemin dans le container.
 - `SECRET_KEY`: La clé secrète utilisée pour la signature des cookies de session. Par défaut, il est défini sur 'superkey_that_can_be_changed'. Sécurité suplémentaire pour chiffré la base de donnée.
 
