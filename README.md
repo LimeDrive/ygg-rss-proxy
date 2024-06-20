@@ -102,6 +102,8 @@ C'est pour illustré l'utilisation de l'application avec d'autres services.
             YGG_USER: 'User'
             YGG_PASS: 'passw0rd'
             FLARESOLVERR_HOST: flaresolverr
+            RSS_HOST: ygg-rss-proxy
+            RSS_PORT: 8080
             LOG_LEVEL: INFO
          volumes:
             - ./config:/app/config
