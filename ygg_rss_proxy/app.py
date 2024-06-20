@@ -71,7 +71,10 @@ def proxy_torrent():
     torrent_url = request.url.replace(f"{URL_PROXY}/torrent", URL_TORRENTS)
     ygg_session = get_session()
 
-    response = ygg_session.get(torrent_url)
+    try:
+        response = ygg_session.get(torrent_url)
+    except TimeoutError as e:
+        logger.error(f"Timeout Err: {e}")
 
     if response.status_code in [
         401,
