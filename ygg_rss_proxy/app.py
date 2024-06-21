@@ -5,6 +5,7 @@ from timeout_decorator import TimeoutError
 from ygg_rss_proxy.rss import get_rss_feed, replace_torrent_links
 from ygg_rss_proxy.settings import settings
 from ygg_rss_proxy.logging_config import logger
+from ygg_rss_proxy.torrent import dwl_torrent
 from ygg_rss_proxy.session_manager import (
     save_session,
     get_session,
@@ -29,8 +30,6 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 db = SQLAlchemy(app)
 app.config["SESSION_SQLALCHEMY"] = db
 
-URL_TORRENTS = f"{settings.ygg_url}/rss/download"
-URL_PROXY = f"{settings.rss_shema}://{settings.rss_host}:{settings.rss_port}"
 
 Session(app)
 
@@ -68,10 +67,13 @@ def proxy_rss():
 
 @app.route("/torrent", methods=["GET"])
 def proxy_torrent():
-    torrent_url = request.url.replace(f"{URL_PROXY}/torrent", URL_TORRENTS)
+    query_params = request.query_string.decode("utf-8")
     ygg_session = get_session()
 
-    response = ygg_session.get(torrent_url)
+    try:
+        response = dwl_torrent(query_params, requests_session=ygg_session)
+    except TimeoutError as e:
+        logger.error(f"Timeout Err: {e}")
 
     if response.status_code in [
         401,
@@ -82,7 +84,7 @@ def proxy_torrent():
         logger.debug(f"Response status : {response.status_code}")
         logger.info("Session may have expired, re-authenticating...")
         ygg_session = new_session()
-        response = ygg_session.get(torrent_url)
+        response = dwl_torrent(query_params, requests_session=ygg_session)
 
     if response.status_code == 200:
         save_session(ygg_session)

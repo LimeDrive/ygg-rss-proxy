@@ -135,13 +135,13 @@ def ygg_cloudflare_login(
 
 
 @retry(
-    stop=stop_after_attempt(3),
+    stop=stop_after_attempt(2),
     wait=wait_fixed(0.3),
     retry_error_callback=lambda retry_state: Exception(
         "Failed to connect to YGG after retries"
     ),
 )
-@timeout_decorator.timeout(90, exception_message=f"Timeout after 90 seconds")
+@timeout_decorator.timeout(60, exception_message=f"Timeout after 60 seconds")
 def ygg_login(
     session=requests.Session(), ygg_playload: dict = ygg_playload
 ) -> requests.Session:
