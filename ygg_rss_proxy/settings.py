@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     gunicorn_workers: int = 4
     gunicorn_port: int = 8080
     gunicorn_binder: str = "0.0.0.0"
-    gunicorn_timeout: int = 120
+    gunicorn_timeout: int = 180
 
     # LOGGING
     log_level: LogLevel = LogLevel.INFO
