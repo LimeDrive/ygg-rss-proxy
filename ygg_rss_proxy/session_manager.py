@@ -9,11 +9,19 @@ from ygg_rss_proxy.auth import ygg_login
 from ygg_rss_proxy.logging_config import logger
 
 
-@timeout_decorator.timeout(3, exception_message=f"Timeout after 3 seconds")
+class DatabaseConnectionError(Exception):
+    pass
+
+
+class SessionCreationError(Exception):
+    pass
+
+
+@timeout_decorator.timeout(3, exception_message="Timeout after 3 seconds")
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_fixed(0.3),
-    retry_error_callback=lambda retry_state: Exception(
+    retry_error_callback=lambda retry_state: DatabaseConnectionError(
         "Failed to connect to the database after retries"
     ),
 )
@@ -23,96 +31,119 @@ def check_database_connection():
     try:
         with db.engine.connect() as connection:
             connection.execute(text("SELECT 1"))
+        logger.info("Database connection successful")
     except Exception as e:
         logger.error(f"Failed to connect to the database: {e}")
-        raise Exception("Failed to connect to the database")
+        raise DatabaseConnectionError("Failed to connect to the database")
 
 
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_fixed(0.3),
-    retry_error_callback=lambda retry_state: Exception(
-        "Failed to connect to the database after retries"
+    retry_error_callback=lambda retry_state: SessionCreationError(
+        "Failed to create a new session after retries"
     ),
 )
-@timeout_decorator.timeout(90, exception_message=f"Timeout after 90 seconds")
+@timeout_decorator.timeout(90, exception_message="Timeout after 90 seconds")
 def new_session() -> requests.Session:
     """
-    This function creates a new session by logging into YGG and saving the session data.
+    Create a new session by logging into YGG and saving the session data.
 
     Returns:
         requests.Session: The newly created session.
     """
-    ygg_session = ygg_login()
-    session_data = {
-        "cookies": pickle.dumps(dict_from_cookiejar(ygg_session.cookies)),
-        "headers": pickle.dumps(dict(ygg_session.headers)),
-    }
-    session["session_data"] = pickle.dumps(session_data)
-    return ygg_session
+    try:
+        logger.info("Attempting to create a new YGG session")
+        ygg_session = ygg_login()
+        session_data = {
+            "cookies": pickle.dumps(dict_from_cookiejar(ygg_session.cookies)),
+            "headers": pickle.dumps(dict(ygg_session.headers)),
+        }
+        session["session_data"] = pickle.dumps(session_data)
+        logger.info("New YGG session created successfully")
+        return ygg_session
+    except Exception as e:
+        logger.error(f"Failed to create a new YGG session: {e}")
+        raise SessionCreationError("Failed to create a new YGG session") from e
 
 
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_fixed(0.3),
-    retry_error_callback=lambda retry_state: Exception(
-        "Failed to connect to the database after retries"
+    retry_error_callback=lambda retry_state: SessionCreationError(
+        "Failed to initialize session after retries"
     ),
 )
 def init_session() -> None:
     """
-    This function initializes a session by checking if session data exists.
-    If it doesn't, it calls the new_session() function to create a new session.
+    Initialize a session by checking if session data exists.
+    If it doesn't, create a new session.
 
     Returns:
         None
     """
-    check_database_connection()
-    if "session_data" not in session:
-        new_session()
+    try:
+        logger.info("Initializing session")
+        check_database_connection()
+        if "session_data" not in session:
+            logger.info("No existing session found, creating a new one")
+            new_session()
+        else:
+            logger.info("Existing session found")
+    except Exception as e:
+        logger.error(f"Failed to initialize session: {e}")
+        raise SessionCreationError("Failed to initialize session") from e
 
 
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_fixed(0.3),
-    retry_error_callback=lambda retry_state: Exception(
-        "Failed to connect to the database after retries"
+    retry_error_callback=lambda retry_state: SessionCreationError(
+        "Failed to get session after retries"
     ),
 )
 def get_session() -> requests.Session:
     """
-    This function retrieves a session by checking if session data exists.
-    If it does, it loads the session data and creates a new requests.Session object.
-    If the session data is incomplete or doesn't exist, it calls the new_session() function to create a new session.
+    Retrieve a session by checking if session data exists.
+    If it does, load the session data and create a new requests.Session object.
+    If the session data is incomplete or doesn't exist, create a new session.
 
     Returns:
         requests.Session: The retrieved or newly created session.
     """
-    if "session_data" in session:
-        session_data = pickle.loads(session["session_data"])
-        if "cookies" not in session_data or "headers" not in session_data:
-            return new_session()
+    try:
+        logger.info("Attempting to retrieve session")
+        if "session_data" in session:
+            session_data = pickle.loads(session["session_data"])
+            if "cookies" not in session_data or "headers" not in session_data:
+                logger.warning("Incomplete session data found, creating a new session")
+                return new_session()
 
-        requests_session = requests.Session()
-        requests_session.cookies = cookiejar_from_dict(
-            pickle.loads(session_data["cookies"])
-        )
-        requests_session.headers.update(pickle.loads(session_data["headers"]))
-        return requests_session
+            logger.info("Creating requests.Session from existing data")
+            requests_session = requests.Session()
+            requests_session.cookies = cookiejar_from_dict(
+                pickle.loads(session_data["cookies"])
+            )
+            requests_session.headers.update(pickle.loads(session_data["headers"]))
+            return requests_session
 
-    return new_session()
+        logger.info("No existing session found, creating a new one")
+        return new_session()
+    except Exception as e:
+        logger.error(f"Failed to get session: {e}")
+        raise SessionCreationError("Failed to get session") from e
 
 
 @retry(
     stop=stop_after_attempt(3),
     wait=wait_fixed(0.3),
     retry_error_callback=lambda retry_state: Exception(
-        "Failed to connect to the database after retries"
+        "Failed to save session after retries"
     ),
 )
 def save_session(requests_session: requests.Session) -> None:
     """
-    This function saves the session data of a requests.Session object into the Flask session.
+    Save the session data of a requests.Session object into the Flask session.
     The session data includes cookies and headers.
 
     Args:
@@ -121,8 +152,14 @@ def save_session(requests_session: requests.Session) -> None:
     Returns:
         None
     """
-    session_data = {
-        "cookies": pickle.dumps(dict_from_cookiejar(requests_session.cookies)),
-        "headers": pickle.dumps(dict(requests_session.headers)),
-    }
-    session["session_data"] = pickle.dumps(session_data)
+    try:
+        logger.info("Saving session data")
+        session_data = {
+            "cookies": pickle.dumps(dict_from_cookiejar(requests_session.cookies)),
+            "headers": pickle.dumps(dict(requests_session.headers)),
+        }
+        session["session_data"] = pickle.dumps(session_data)
+        logger.info("Session data saved successfully")
+    except Exception as e:
+        logger.error(f"Failed to save session data: {e}")
+        raise Exception("Failed to save session data") from e

@@ -52,7 +52,7 @@ def format(record):
     if record["exception"] is not None:
         stack = stackprinter.format(
             record["exception"],
-            suppressed_vars=[r".*ygg_playload.*", r".*query_params.*"],
+            suppressed_vars=[r".*ygg_payload.*", r".*query_params.*"],
         )
         if REDACTED:
             for pat in pats:
