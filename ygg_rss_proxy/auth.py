@@ -155,7 +155,7 @@ def ygg_login(
     logger.info("Initiating YGG login process")
     try:
         response = session.get(URL_LOGIN)
-        if response.status_code == 403:
+        if response.status_code != 200:
             logger.info("Cloudflare protection detected, using FlareSolverr for login")
             return ygg_cloudflare_login(session, ygg_payload)
         else:
