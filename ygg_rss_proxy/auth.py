@@ -105,11 +105,11 @@ def ygg_cloudflare_login(
                         path=cookie["path"],
                         path_specified=True,
                         secure=cookie["secure"],
-                        expires=cookie["expiry"],
+                        expires=cookie["expires"],
                         discard=False,
                         comment=None,
                         comment_url=None,
-                        rest={"HttpOnly": cookie["httpOnly"]},
+                        rest={"HttpOnly": None},
                         rfc2109=False,
                     )
                 )

@@ -1,34 +1,14 @@
-version: "3.8"
-
 services:
-
-   qbittorrent:
-      image: lscr.io/linuxserver/qbittorrent:latest
-      container_name: qbittorrent
-      environment:
-         PUID: 1000
-         PGID: 1000
-         TZ: Europe/Paris
-         WEBUI_PORT: 8080
-      volumes:
-         - ./config:/config
-         - ./downloads:/downloads
-      ports:
-         - 6881:6881
-         - 6881:6881/udp
-         - 8080:8080
-      restart: unless-stopped
-
    ygg-rss-proxy:
-      image: ghcr.io/limedrive/ygg-rss-proxy:latest
       build: .
       container_name: ygg-rss-proxy
-      expose:
-         - 8080
+      ports:
+         - 8080:8080
       environment:
          TZ: Europe/Paris
          YGG_USER: 'StOpCouDflaE'
          YGG_PASS: 'BaDaSS'
+         YGG_URL: "https://www.yggtorrent.top"
          FLARESOLVERR_HOST: flaresolverr
          LOG_LEVEL: INFO
       volumes:
@@ -38,7 +18,7 @@ services:
          - flaresolverr
 
    flaresolverr:
-      image: ghcr.io/flaresolverr/flaresolverr:latest
+      image: 21hsmw/flaresolverr:nodriver
       container_name: flaresolverr
       environment:
          TZ: Europe/Paris

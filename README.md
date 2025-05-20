@@ -1,3 +1,9 @@
+Fork du projet ygg-rss-proxy.
+
+La branch main contient actuellement des modifications qui permettent d'utiliser la version [flaresolverr](https://github.com/21hsmw/FlareSolverr) de [@21hsmw](https://github.com/21hsmw). (Version qui n'est plus fonctionnelle).
+
+Une version fonctionnelle est disponible sur la branche `byparr`. Le code n'est pas propre mais il est fonctionnel. Il utilise [byparr](https://github.com/ThePhaseless/Byparr) plutot que flaresolverr, qui resoud les capatchas cloudflare a l'heure ou j'ecris ces lignes.
+
 # ygg-rss-proxy
 
 # 🚨 Important Notice 🚨
@@ -71,32 +77,11 @@ C'est pour illustré l'utilisation de l'application avec d'autres services.
 1. **Créer un fichier `docker-compose.yml`**
 
    ```yaml
-   version: "3.8"
-
    services:
-
-      qbittorrent:
-         image: lscr.io/linuxserver/qbittorrent:latest
-         container_name: qbittorrent
-         environment:
-            PUID: 1000
-            PGID: 1000
-            TZ: Europe/Paris
-            WEBUI_PORT: 8080
-         volumes:
-            - ./config:/config
-            - ./downloads:/downloads
-         ports:
-            - 6881:6881
-            - 6881:6881/udp
-            - 8080:8080
-         restart: unless-stopped
-
       ygg-rss-proxy:
-         image: ghcr.io/limedrive/ygg-rss-proxy:latest
          container_name: ygg-rss-proxy
-         expose:
-            - 8080
+         ports:
+            - 8080:8080
          environment:
             TZ: Europe/Paris
             YGG_USER: 'User'
@@ -126,7 +111,7 @@ C'est pour illustré l'utilisation de l'application avec d'autres services.
 2. **Exécuter Docker Compose**
 
    ```bash
-   docker-compose up -d
+   docker-compose up -d --build
    ```
 
 ## Comment Utiliser le Proxy
