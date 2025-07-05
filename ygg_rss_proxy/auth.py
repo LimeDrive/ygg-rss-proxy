@@ -73,7 +73,7 @@ def ygg_cloudflare_login(
         logger.error("Failed to connect to FlareSolverr, please check our instance")
         raise Exception("Failed to connect to FlareSolverr")
 
-    response = fs_solver.request_get(url="https://www.ygg.re")
+    response = fs_solver.request_get(url=settings.ygg_url)
     logger.debug(f"FlareSolverr message: {response.message}")
     logger.debug(f"FlareSolverr status: {response.solution.status}")
     logger.debug(f"FlareSolverr user-agent: {response.solution.user_agent}")
